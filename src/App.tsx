@@ -3,7 +3,9 @@ import "./App.css";
 
 function App() {
   const [message, setMessage] = useState("");
-  const [chats, setChats] = useState<ChatMessage[]>([]);
+  const [chats, setChats] = useState<ChatMessage[]>([
+    { role: "assistant", content: "Hello! How may I assist you?" },
+  ]);
   const [isTyping, setIsTyping] = useState(false);
 
   interface ChatMessage {
@@ -17,11 +19,9 @@ function App() {
     if (!message) return;
     setIsTyping(true);
 
-    const msgs = chats;
-    msgs.push({ role: "user", content: message });
-    setChats(msgs);
+    setChats((prevChats) => [...prevChats, { role: "user", content: message }]);
+
     setMessage("");
-    console.log("msgs before fetch", msgs);
 
     fetch("http://localhost:8000/", {
       method: "POST",
@@ -29,15 +29,13 @@ function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        chats,
+        chats: [...chats, { role: "user", content: message }],
       }),
     })
       .then((response) => response.json())
       .then((data) => {
-        msgs.push(data.output);
-        setChats(msgs);
+        setChats((prevChats) => [...prevChats, data.output]);
         setIsTyping(false);
-        console.log("msgs after fetch", msgs);
       })
       .catch((error) => {
         console.log(error);
@@ -50,17 +48,15 @@ function App() {
       <h1>Chatbot</h1>
 
       <section>
-        {chats && chats.length
-          ? chats.map((chat, index) => (
-              <p key={index} className={chat.role === "user" ? "user_msg" : ""}>
-                <span>
-                  <b>{chat.role.toUpperCase()}</b>
-                </span>
-                <span>:</span>
-                <span>{chat.content}</span>
-              </p>
-            ))
-          : ""}
+        {chats.map((chat, index) => (
+          <p key={index} className={chat.role === "user" ? "user_msg" : ""}>
+            <span>
+              <b>{chat.role.toUpperCase()}</b>
+            </span>
+            <span>:</span>
+            <span>{chat.content}</span>
+          </p>
+        ))}
       </section>
 
       <div className={isTyping ? "" : "hide"}>
