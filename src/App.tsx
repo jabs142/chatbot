@@ -17,10 +17,12 @@ function App() {
     if (!message) return;
     setIsTyping(true);
 
-    const msgs: ChatMessage[] = [...chats, { role: "user", content: message }];
+    const msgs = chats;
+    msgs.push({ role: "user", content: message });
     setChats(msgs);
     setMessage("");
     console.log("msgs before fetch", msgs);
+
     fetch("http://localhost:8000/", {
       method: "POST",
       headers: {
