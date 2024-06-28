@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
@@ -7,6 +7,25 @@ function App() {
     { role: "assistant", content: "Hello! How may I assist you?" },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    async function fetchInitialMessage() {
+      try {
+        const response = await fetch("http://localhost:8000/");
+        if (!response.ok) {
+          throw new Error("Failed to fetch initial message");
+        }
+        const data = await response.json();
+        setChats((prevChats) => [...prevChats, data.output]);
+        setIsTyping(false);
+      } catch (error) {
+        console.error("Error fetching initial message:", error);
+        setIsTyping(false);
+      }
+    }
+
+    fetchInitialMessage();
+  }, []); // Empty dependency array ensures useEffect runs only once on mount
 
   interface ChatMessage {
     role: string;
@@ -23,24 +42,27 @@ function App() {
 
     setMessage("");
 
-    fetch("http://localhost:8000/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chats: [...chats, { role: "user", content: message }],
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setChats((prevChats) => [...prevChats, data.output]);
-        setIsTyping(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setIsTyping(false);
+    try {
+      const response = await fetch("http://localhost:8000/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: message,
+        }),
       });
+
+      const data = await response.json();
+      setChats((prevChats) => [
+        ...prevChats,
+        { role: "assistant", content: data.output },
+      ]);
+      setIsTyping(false);
+    } catch (error) {
+      console.log(error);
+      setIsTyping(false);
+    }
   };
 
   return (
