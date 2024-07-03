@@ -34,7 +34,7 @@ main {
 }
 
 p {
-  background-color: darkslategray;
+  background-color: #3b4252;
   max-width: 70%;
   padding: 15px;
   border-radius: 50px;
@@ -49,9 +49,13 @@ p span:first-child {
 }
 
 .user_msg {
-  text-align: right;
   margin-left: 30%;
   display: flex;
+  padding: 20px;
+}
+
+.assistant_msg {
+  padding: 20px 30px 20px 30px;
 }
 
 .hide {
